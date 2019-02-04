@@ -1,0 +1,58 @@
+{
+	"config": {
+		"target": "http://{{ $processEnvironment.API_HOST }}:{{ $processEnvironment.API_PORT }}",
+		"processor": "./artillery.js",
+		"phases": [
+			{
+				"duration": 30,
+				"arrivalRate": 1,
+				"rampTo": 20
+			},
+			{
+				"duration": 120,
+				"arrivalRate": 20
+			}
+		]
+	},
+	"scenarios": [
+		{
+			"name": "Admin Login",
+			"flow": [
+        {
+					"function": "getAdminCredentials"
+        },
+				{
+					"post": {
+						"url": "/api/v1/login",
+						"json": {
+							"email": "{{ adminCredentials.email }}",
+							"password": "{{ adminCredentials.password }}"
+						}
+					}
+				},
+				{
+					"loop": [
+            {
+							"function": "getPlayerData"
+            },
+						{
+							"post": {
+								"url": "/api/v1/players",
+								"json": {
+									"name": "{{ playerData.name }}",
+									"email": "{{ playerData.email }}"
+								}
+							}
+						},
+						{
+							"get": {
+								"url": "/api/v1/players"
+							}
+						}
+					],
+					"count": 1000
+				}
+			]
+		}
+	]
+}
